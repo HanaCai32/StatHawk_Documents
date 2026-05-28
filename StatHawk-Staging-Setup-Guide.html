@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StatHawk — Staging Backend Setup Guide</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; max-width: 720px; margin: 40px auto; line-height: 1.5; color: #222; }
+    h1 { font-size: 22px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+    h2 { font-size: 16px; margin-top: 28px; color: #333; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; }
+    th { background: #f5f5f5; }
+    ul { padding-left: 22px; }
+    li { margin: 6px 0; }
+    .meta { color: #666; font-size: 13px; margin-bottom: 24px; }
+    .check { font-family: monospace; }
+    a { color: #1155cc; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 24px 0; }
+  </style>
+</head>
+<body>
+
+<h1>StatHawk — Staging Backend &amp; Database Setup Guide</h1>
+
+<p class="meta">
+  <strong>Version:</strong> 1.0 &nbsp;|&nbsp;
+  <strong>Date:</strong> May 2026 &nbsp;|&nbsp;
+  <strong>For:</strong> First TestFlight build
+</p>
+
+<p>
+  This guide lists the <strong>accounts the client must create</strong> and the steps to deploy the StatHawk API and database so the iPad app works on TestFlight (not localhost).
+</p>
+
+<p><strong>Rule:</strong> The client owns all accounts. The dev team gets invited access only.</p>
+
+<hr>
+
+<h2>1. What we are setting up</h2>
+
+<table>
+  <tr><th>Item</th><th>Local (today)</th><th>Staging (needed)</th></tr>
+  <tr><td>API</td><td>http://localhost:3000</td><td>https://api-staging.stathawk.app (example)</td></tr>
+  <tr><td>Database</td><td>PostgreSQL on your Mac</td><td>Managed Postgres (Neon)</td></tr>
+  <tr><td>iOS app</td><td>Secrets.plist → localhost</td><td>HTTPS staging API URL</td></tr>
+  <tr><td>Auth</td><td>Clerk test keys</td><td>Clerk production keys</td></tr>
+</table>
+
+<hr>
+
+<h2>2. Recommended services (client creates accounts)</h2>
+
+<table>
+  <tr><th>Service</th><th>Purpose</th><th>Sign up</th></tr>
+  <tr><td><strong>Neon</strong></td><td>PostgreSQL database</td><td><a href="https://neon.tech">neon.tech</a></td></tr>
+  <tr><td><strong>Railway</strong> or <strong>Render</strong></td><td>Host the API</td><td><a href="https://railway.app">railway.app</a> / <a href="https://render.com">render.com</a></td></tr>
+  <tr><td><strong>Clerk</strong></td><td>Login (email, Apple, Google)</td><td><a href="https://clerk.com">clerk.com</a></td></tr>
+  <tr><td><strong>RevenueCat</strong></td><td>Subscriptions</td><td><a href="https://www.revenuecat.com">revenuecat.com</a></td></tr>
+  <tr><td><strong>Cloudflare</strong></td><td>R2 storage (photos/shares)</td><td><a href="https://dash.cloudflare.com">dash.cloudflare.com</a></td></tr>
+  <tr><td><strong>Domain DNS</strong></td><td>api-staging.yourdomain.com</td><td>Your registrar or Cloudflare</td></tr>
+</table>
+
+<p><em>Alternative:</em> Client VPS + <a href="https://coolify.io/docs">Coolify</a> for database and API on one server.</p>
+
+<hr>
+
+<h2>3. Client checklist</h2>
+
+<h2>Step A — Database (Neon)</h2>
+<ul>
+  <li>Create Neon account and project</li>
+  <li>Create database named <strong>stathawk</strong></li>
+  <li>Send the <strong>DATABASE_URL</strong> connection string to the dev team (secure channel)</li>
+</ul>
+
+<h2>Step B — API hosting (Railway or Render)</h2>
+<ul>
+  <li>Create account and connect GitHub repo: <strong>stathawk_backend</strong></li>
+  <li>Add environment variables (see Section 4)</li>
+  <li>Point domain <strong>api-staging.stathawk.app</strong> (or agreed URL) via DNS</li>
+  <li>Confirm HTTPS works: <strong>/health</strong> returns OK</li>
+</ul>
+
+<h2>Step C — Clerk</h2>
+<ul>
+  <li>Create <strong>Production</strong> Clerk application</li>
+  <li>Enable sign-in: Email, Apple, Google</li>
+  <li>Send <strong>pk_live_...</strong> and <strong>sk_live_...</strong> to dev team</li>
+</ul>
+
+<h2>Step D — RevenueCat</h2>
+<ul>
+  <li>Create project for iOS app <strong>com.stathawk.app</strong></li>
+  <li>Set webhook URL: <strong>https://api-staging.../v1/webhooks/revenuecat</strong></li>
+  <li>Send webhook secret to dev team</li>
+</ul>
+
+<h2>Step E — Invite dev team</h2>
+<ul>
+  <li>Neon, Railway/Render, Clerk, RevenueCat — add dev emails as team members</li>
+</ul>
+
+<hr>
+
+<h2>4. API environment variables</h2>
+
+<table>
+  <tr><th>Variable</th><th>Required</th><th>Notes</th></tr>
+  <tr><td>NODE_ENV</td><td>Yes</td><td>production</td></tr>
+  <tr><td>PORT</td><td>Yes</td><td>3000 (or host default)</td></tr>
+  <tr><td>DATABASE_URL</td><td>Yes</td><td>From Neon (not localhost)</td></tr>
+  <tr><td>CLERK_SECRET_KEY</td><td>Yes</td><td>Production secret</td></tr>
+  <tr><td>CLERK_PUBLISHABLE_KEY</td><td>Yes</td><td>Production publishable key</td></tr>
+  <tr><td>REVENUECAT_WEBHOOK_SECRET</td><td>Yes</td><td>From RevenueCat</td></tr>
+  <tr><td>R2_* (4 vars)</td><td>Later</td><td>When testing photos/shares</td></tr>
+  <tr><td>RESEND_API_KEY</td><td>Later</td><td>When testing email invites</td></tr>
+</table>
+
+<hr>
+
+<h2>5. Dev team tasks (after client provides access)</h2>
+
+<ol>
+  <li>Run database migrations: <span class="check">npx prisma migrate deploy</span></li>
+  <li>Deploy API: build → migrate → <span class="check">npm run start:prod</span></li>
+  <li>Update iOS staging build: <strong>API_BASE_URL</strong> = staging HTTPS URL</li>
+  <li>Update iOS: <strong>CLERK_PUBLISHABLE_KEY</strong> = production key</li>
+  <li>Test on device: sign in → create team → create game</li>
+</ol>
+
+<hr>
+
+<h2>6. Information to send the dev team</h2>
+
+<table>
+  <tr><th>#</th><th>Item</th><th>Done?</th></tr>
+  <tr><td>1</td><td>DATABASE_URL (Postgres)</td><td>☐</td></tr>
+  <tr><td>2</td><td>Staging API URL (https://...)</td><td>☐</td></tr>
+  <tr><td>3</td><td>Clerk pk_live + sk_live</td><td>☐</td></tr>
+  <tr><td>4</td><td>RevenueCat webhook secret</td><td>☐</td></tr>
+  <tr><td>5</td><td>DNS / domain access (if needed)</td><td>☐</td></tr>
+  <tr><td>6</td><td>GitHub deploy access</td><td>☐</td></tr>
+</table>
+
+<hr>
+
+<h2>7. Smoke test (sign-off)</h2>
+
+<table>
+  <tr><th>Test</th><th>Pass?</th></tr>
+  <tr><td>https://api-staging.../health works</td><td>☐</td></tr>
+  <tr><td>Sign in on iPad TestFlight build</td><td>☐</td></tr>
+  <tr><td>Create team and game</td><td>☐</td></tr>
+  <tr><td>RevenueCat webhook (if billing enabled)</td><td>☐</td></tr>
+</table>
+
+<hr>
+
+<h2>8. Helpful links</h2>
+<ul>
+  <li>Prisma migrations: <a href="https://www.prisma.io/docs/orm/prisma-migrate/workflows/deploy-production">prisma.io — deploy migrations</a></li>
+  <li>Neon docs: <a href="https://neon.tech/docs/introduction">neon.tech/docs</a></li>
+  <li>Railway Node: <a href="https://docs.railway.com/guides/nodejs">docs.railway.com</a></li>
+  <li>Clerk: <a href="https://clerk.com/docs/deployments/overview">clerk.com/docs</a></li>
+  <li>RevenueCat webhooks: <a href="https://www.revenuecat.com/docs/integrations/webhooks">revenuecat.com/docs</a></li>
+  <li>Apple TestFlight: <a href="https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/">developer.apple.com</a></li>
+</ul>
+
+<hr>
+
+<p class="meta"><strong>StatHawk</strong> — Private document</p>
+
+</body>
+</html>
