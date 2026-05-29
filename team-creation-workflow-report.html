@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StatHawk — Team Creation Workflow</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --brand: #1d5de7;
+      --brand-dark: #1548b8;
+      --text: #0a0a0a;
+      --text-muted: #5c6570;
+      --border: #e4e8ec;
+      --bg: #f6f8fa;
+      --card: #ffffff;
+      --accent: #eaf1ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+      color: #fff;
+      padding: 40px 32px;
+      border-radius: 12px;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header .meta {
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    header .meta p { margin: 4px 0; }
+
+    h2 {
+      font-size: 1.35rem;
+      margin: 40px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--brand);
+      color: var(--text);
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin: 28px 0 12px;
+      color: var(--text);
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+
+    p { margin: 0 0 12px; }
+
+    ul, ol { margin: 0 0 16px; padding-left: 1.4rem; }
+    li { margin-bottom: 6px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      margin: 12px 0 20px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--accent);
+      font-weight: 600;
+      color: var(--brand-dark);
+    }
+
+    tr:nth-child(even) td { background: #fafbfc; }
+
+    .summary-box {
+      background: var(--accent);
+      border-left: 4px solid var(--brand);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 16px 0;
+    }
+
+    .flow-diagram {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 16px 0;
+    }
+
+    .mermaid {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .checklist li {
+      padding: 8px 0 8px 32px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--brand);
+      font-size: 1.1rem;
+    }
+
+    .note {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #e7f8f0;
+      color: #0f7a45;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { padding: 0; max-width: 100%; }
+      section { break-inside: avoid; box-shadow: none; }
+      header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <p class="tag">Client Report</p>
+      <h1>StatHawk — Team Creation Workflow</h1>
+      <div class="meta">
+        <p><strong>Product:</strong> StatHawk iOS app + backend API</p>
+        <p><strong>Feature:</strong> Create New Team (4-step wizard)</p>
+        <p><strong>Status:</strong> Implemented end-to-end</p>
+        <p><strong>Date:</strong> May 2026</p>
+      </div>
+    </header>
+
+    <section id="executive-summary">
+      <h2>Executive Summary</h2>
+      <div class="summary-box">
+        <p>Team creation is a guided, four-step wizard in the iOS app. The team is <strong>not saved to the server until the user taps Done</strong> on the final step (Settings). Until then, team info, roster, schedule, and staff invites are held on the device (with partial draft recovery if the user leaves and returns).</p>
+      </div>
+      <p>When the user finishes:</p>
+      <ol>
+        <li>The team and season are created on the server.</li>
+        <li>The creator becomes <strong>Team Owner</strong> with full admin access.</li>
+        <li>Roster players, games, and optional team logo are uploaded.</li>
+        <li>Staff invitations are sent by email (for people who do not yet have a StatHawk account).</li>
+        <li>The new team appears on the <strong>Dashboard</strong> team picker and under <strong>Settings → My Teams</strong>.</li>
+      </ol>
+    </section>
+
+    <section id="entry-points">
+      <h2>Where Users Start</h2>
+      <table>
+        <thead>
+          <tr><th>Entry point</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Dashboard</strong></td><td>“New Team” on the team selection screen</td></tr>
+          <tr><td><strong>Settings → My Teams</strong></td><td>“New Team” button</td></tr>
+        </tbody>
+      </table>
+      <p>Both open the same <strong>Create New Team</strong> full-screen flow.</p>
+    </section>
+
+    <section id="wizard">
+      <h2>Wizard Overview (4 Steps)</h2>
+      <div class="flow-diagram">┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  TEAM INFO  │ →  │ ADD PLAYERS │ →  │  SCHEDULE   │ →  │  SETTINGS   │
+│  (Continue) │    │  (Continue) │    │ (Continue / │    │    (Done)   │
+│             │    │             │    │    Skip)    │    │             │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘</div>
+      <p>Tabs unlock in order. The user cannot jump ahead until they complete the current step with <strong>Continue</strong> (except Schedule, which can be <strong>skipped</strong>).</p>
+    </section>
+
+    <section id="step-1">
+      <h2>Step 1 — Team Info</h2>
+      <p><strong>Purpose:</strong> Define the team identity and season.</p>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Required</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Team name</td><td>Yes</td><td></td></tr>
+          <tr><td>Season</td><td>Yes</td><td>Defaults to current season (e.g. 2025–2026)</td></tr>
+          <tr><td>Level</td><td>Yes</td><td>Youth / high school / college / other</td></tr>
+          <tr><td>Country, state, city</td><td>Yes*</td><td>State required when country has subdivisions</td></tr>
+          <tr><td>Organization / school</td><td>Yes</td><td>Search existing orgs or enter a new name</td></tr>
+          <tr><td>Team logo</td><td>No</td><td>Optional image upload</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Validation before Continue:</strong> All required fields must be filled; organization must be selected from search or entered as new text.</p>
+      <p class="note"><strong>Important:</strong> Tapping Continue does not create the team on the server yet. It only unlocks the next tab and saves progress locally.</p>
+    </section>
+
+    <section id="step-2">
+      <h2>Step 2 — Add Players</h2>
+      <p><strong>Purpose:</strong> Build the roster before the team exists on the server.</p>
+      <ul>
+        <li>Each player is added via <strong>Add Player</strong> (name, jersey, positions, optional photo, optional email).</li>
+        <li>While creating a new team, players are stored <strong>only on the device</strong> until Done.</li>
+        <li>Player photos are kept in memory until upload at the end.</li>
+      </ul>
+      <p class="note"><strong>Note:</strong> If the app is fully closed before Done, roster and schedule data added in steps 2–3 are not recovered (team info and settings draft may still be restored).</p>
+    </section>
+
+    <section id="step-3">
+      <h2>Step 3 — Schedule</h2>
+      <p><strong>Purpose:</strong> Add games for the season.</p>
+      <ul>
+        <li>User can add games manually (opponent, date, time, location, etc.).</li>
+        <li><strong>Skip</strong> is available — user can proceed to Settings without any games.</li>
+        <li>Games are stored locally until Done, then created on the server in batch.</li>
+      </ul>
+    </section>
+
+    <section id="step-4">
+      <h2>Step 4 — Settings</h2>
+      <p><strong>Purpose:</strong> Team permissions, staff, and final submission.</p>
+
+      <h3>Team Permissions (defaults on)</h3>
+      <table>
+        <thead>
+          <tr><th>Permission</th><th>Default</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Coaches can edit roster</td><td>On</td><td>Head/assistant coaches can manage players</td></tr>
+          <tr><td>Parents can view all stats</td><td>On</td><td>Parent roles see full team stats</td></tr>
+          <tr><td>Players can share stats</td><td>On</td><td>Players can share their own stats</td></tr>
+          <tr><td>Require approval to join</td><td>On</td><td>Join requests need admin approval</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Staff &amp; Invites (during create)</h3>
+      <p>The creator appears as <strong>Owner</strong> on the members list. Additional roles can be added:</p>
+      <table>
+        <thead>
+          <tr><th>Role</th><th>Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Head coach / Assistant</td><td>Coaching staff</td></tr>
+          <tr><td>Parent (edit / view)</td><td>Family access</td></tr>
+          <tr><td>Player</td><td>Roster-linked member</td></tr>
+        </tbody>
+      </table>
+      <p><strong>During create:</strong> Invites are <strong>queued</strong>, not emailed immediately. The UI states that invitations will be emailed when you finish creating the team.</p>
+      <p><strong>On Done:</strong> Each queued invite is sent to the server; the backend decides whether to add the person directly or send an invite email (see Invitations below).</p>
+    </section>
+
+    <section id="done-flow">
+      <h2>What Happens When the User Taps Done</h2>
+      <p>The app performs these server operations <strong>in order</strong>:</p>
+      <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant App as StatHawk App
+    participant API as StatHawk API
+    User->>App: Tap Done
+    App->>API: Create organization (if new)
+    App->>API: Create team + season
+    App->>API: Upload team logo (if set)
+    loop Each player
+        App->>API: Add to roster
+        App->>API: Upload player photo (if set)
+    end
+    loop Each game
+        App->>API: Add game to schedule
+    end
+    loop Each staff invite
+        App->>API: Send invite
+    end
+    App->>API: Refresh my teams list
+    App->>User: Return to Dashboard / Settings
+      </div>
+
+      <h3>1. Organization (if needed)</h3>
+      <ul>
+        <li>If the user picked an existing organization → link to that org.</li>
+        <li>If they typed a new org name → create organization, then link.</li>
+      </ul>
+
+      <h3>2. Create team &amp; season</h3>
+      <ul>
+        <li>Creates a <strong>team entity</strong> (name, city, level, organization).</li>
+        <li>Creates a <strong>season instance</strong> for the selected year (display name, join code, permissions).</li>
+        <li>Creates <strong>membership</strong> for the creator: Owner, admin, active.</li>
+      </ul>
+
+      <h3>3. Team logo (optional)</h3>
+      <p>Uploaded to cloud storage; URL saved on the team season.</p>
+
+      <h3>4. Roster (each local player)</h3>
+      <ul>
+        <li>Player record + roster assignment (jersey, positions).</li>
+        <li>Optional player photo upload.</li>
+        <li>If a player email is provided, the system may treat them like an invite (registered users can be linked without email).</li>
+      </ul>
+
+      <h3>5. Schedule (each local game)</h3>
+      <p>Game records with opponent resolution (opponents can be created or matched automatically).</p>
+
+      <h3>6. Staff invitations (each queued invite)</h3>
+      <p>Processed one by one; see Invitation behavior below.</p>
+
+      <h3>7. Refresh team list</h3>
+      <p>Dashboard and My Teams load teams where the user has <strong>active membership</strong>.</p>
+    </section>
+
+    <section id="invitations">
+      <h2>Invitation Behavior</h2>
+      <p>When staff are invited at the end of team creation:</p>
+
+      <h3>Already registered in StatHawk (email matches an account)</h3>
+      <ul>
+        <li>User is added to the team <strong>immediately</strong> as a member.</li>
+        <li><strong>No invite email</strong> is sent.</li>
+        <li>They see the team after their next login (or immediately if already logged in).</li>
+      </ul>
+
+      <h3>Not yet registered</h3>
+      <ul>
+        <li>A <strong>team invite</strong> is created (secure token, 7-day expiry).</li>
+        <li>An <strong>email</strong> is sent with team name, personalized greeting, Open in StatHawk button (<code>stathawk://</code> deep link), QR code, and plain-text link.</li>
+      </ul>
+
+      <h3>Deep link flow</h3>
+      <ol>
+        <li>Recipient taps link → opens StatHawk (or App Store if not installed).</li>
+        <li>New users complete <strong>signup</strong> with email/name prefilled from the invite.</li>
+        <li>After login, the invite is <strong>accepted automatically</strong> and they join the team.</li>
+      </ol>
+
+      <h3>Invite email not configured (dev/staging)</h3>
+      <p>Invite records are still created in the database. Email may be skipped if the mail API key is not set (typical in local dev).</p>
+
+      <h3>Partial invite failures</h3>
+      <p>If some invites fail (invalid email, network error), the <strong>team is still created</strong>. The user may see a message listing emails that could not be invited; they can re-invite from team settings later.</p>
+    </section>
+
+    <section id="roles">
+      <h2>Roles &amp; Access After Creation</h2>
+      <table>
+        <thead>
+          <tr><th>Role</th><th>Admin?</th><th>Typical use</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Owner</strong></td><td>Yes</td><td>Creator; full control</td></tr>
+          <tr><td>Head coach</td><td>Yes</td><td>Manage roster, members, schedule</td></tr>
+          <tr><td>Assistant</td><td>Configurable</td><td>Coaching support</td></tr>
+          <tr><td>Parent (edit)</td><td>No</td><td>Can edit linked player data</td></tr>
+          <tr><td>Parent (view)</td><td>No</td><td>Read-only family access</td></tr>
+          <tr><td>Player</td><td>No</td><td>Athlete account</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Pro status:</strong> New teams start on the <strong>Free</strong> tier. The creator is recorded as Pro owner for future upgrades. Archiving teams and certain Pro features require an active Pro subscription (not part of the create wizard).</p>
+    </section>
+
+    <section id="database">
+      <h2>Data Stored on the Server</h2>
+      <p>After a successful Done, the following exist in StatHawk’s database:</p>
+      <table>
+        <thead>
+          <tr><th>Record</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Organization</td><td>School/club (new or existing)</td></tr>
+          <tr><td>Team entity</td><td>Core team identity</td></tr>
+          <tr><td>Team season</td><td>Season year, display name, logo, permissions, join code</td></tr>
+          <tr><td>Membership</td><td>Creator + any registered invitees</td></tr>
+          <tr><td>Roster assignments</td><td>Players linked to this season</td></tr>
+          <tr><td>Games</td><td>Schedule entries (if any were added)</td></tr>
+          <tr><td>Team invites</td><td>Pending invites for unregistered emails</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="after-creation">
+      <h2>User Experience After Creation</h2>
+      <ol>
+        <li>Wizard closes; user returns to Dashboard or Settings.</li>
+        <li><strong>My teams</strong> list includes every team where they have active membership (including the new team).</li>
+        <li>On Dashboard, they can select the new team from the team picker to work with that season.</li>
+        <li>Invited staff receive email (if unregistered) or see the team on next app open (if registered).</li>
+      </ol>
+    </section>
+
+    <section id="draft">
+      <h2>Draft &amp; Recovery (create in progress)</h2>
+      <table>
+        <thead>
+          <tr><th>Saved locally (can survive leaving the flow)</th><th>Not saved if app is killed</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              Team info, season, level, location<br>
+              Organization selection<br>
+              Team logo (as draft)<br>
+              Tab progress<br>
+              Permission toggles<br>
+              Queued staff invites (names/emails)
+            </td>
+            <td>
+              Roster players<br>
+              Schedule games<br>
+              Player photos
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>If the user taps Back with unsaved changes, they are prompted: <strong>Discard changes?</strong></p>
+    </section>
+
+    <section id="errors">
+      <h2>Validation &amp; Error Handling</h2>
+      <h3>Client (app)</h3>
+      <ul>
+        <li>Required fields enforced before advancing from Team Info.</li>
+        <li>Staff emails must look valid (<code>@</code> required); duplicates blocked in the invite queue.</li>
+        <li>Errors show as “Could Not Save Team” with a readable message.</li>
+      </ul>
+      <h3>Server</h3>
+      <ul>
+        <li>Required team fields validated (name, city, level, season).</li>
+        <li>Duplicate jersey numbers on the same team → rejected.</li>
+        <li>Duplicate season for the same team entity → rejected (one season instance per team per year).</li>
+        <li>Logo upload fails if cloud storage is not configured (environment issue).</li>
+      </ul>
+      <p class="note"><strong>Known edge case:</strong> If the team is created successfully but a later step (roster, schedule, or invites) fails, the team may already exist on the server. The user should use Edit Team or team settings to complete missing data rather than tapping Done again.</p>
+    </section>
+
+    <section id="api">
+      <h2>API Summary (for technical stakeholders)</h2>
+      <table>
+        <thead>
+          <tr><th>Operation</th><th>Method</th><th>Endpoint</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Search organizations</td><td>GET</td><td><code>/v1/organizations/search</code></td></tr>
+          <tr><td>Create organization</td><td>POST</td><td><code>/v1/organizations</code></td></tr>
+          <tr><td><strong>Create team</strong></td><td>POST</td><td><code>/v1/teams</code></td></tr>
+          <tr><td>Upload team logo</td><td>POST</td><td><code>/v1/teams/:id/logo</code></td></tr>
+          <tr><td>Add player</td><td>POST</td><td><code>/v1/teams/:id/roster</code></td></tr>
+          <tr><td>Upload player photo</td><td>POST</td><td><code>/v1/teams/:id/roster/:rosterId/photo</code></td></tr>
+          <tr><td>Add game</td><td>POST</td><td><code>/v1/teams/:id/games</code></td></tr>
+          <tr><td>Invite member</td><td>POST</td><td><code>/v1/teams/:id/invites</code></td></tr>
+          <tr><td>List my teams</td><td>GET</td><td><code>/v1/teams</code></td></tr>
+        </tbody>
+      </table>
+      <p>All authenticated endpoints require a signed-in StatHawk user (Clerk JWT).</p>
+    </section>
+
+    <section id="qa">
+      <h2>Testing Checklist (for client QA)</h2>
+      <ul class="checklist">
+        <li>Create team with minimum fields (no logo, no players, skip schedule, no invites) → appears on Dashboard and My Teams</li>
+        <li>Create team with logo, 3 players, 2 games, 2 staff invites (one existing user email, one new email)</li>
+        <li>Existing user: no email, appears on their team list after login</li>
+        <li>New user: receives email, deep link opens app, signup prefilled, joins team after login</li>
+        <li>Skip schedule → team still created</li>
+        <li>Discard changes on Back → draft cleared as expected</li>
+        <li>Leave mid-flow and return → team info restored; roster/schedule not restored</li>
+        <li>Duplicate season for same team name/org → appropriate error</li>
+      </ul>
+    </section>
+
+    <section id="stakeholders">
+      <h2>Summary for Stakeholders</h2>
+      <div class="summary-box">
+        <p>Team Creation is a <strong>single-session wizard</strong> that batches all work until Done, keeping the experience simple for coaches while ensuring the server receives a consistent team, roster, schedule, and invitations in one coordinated flow. <strong>Registered users are onboarded instantly; unregistered users get branded email invites with deep links into signup and team join.</strong> The creator is always Owner with full control, and the new team is visible everywhere the app lists “my teams.”</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>StatHawk — Team Creation Workflow Report · Generated May 2026</p>
+      <p>Open this file in any web browser. Use Print → Save as PDF to export.</p>
+    </footer>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+  </script>
+</body>
+</html>
